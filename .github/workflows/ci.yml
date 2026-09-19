@@ -58,3 +58,8 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           docker push shakeer405/clientwebportal:v${{ github.run_number }}
+      
+      - name: deploy to kubernetes
+        if: github.event_name != 'pull_request'
+        run: |
+          kubectl set image deployment/clientwebportal clientwebportal=shakeer405/clientwebportal:v${{ github.run_number }} --record
