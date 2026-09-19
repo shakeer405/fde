@@ -184,6 +184,218 @@ This workflow:
 
 ---
 
+## Creating your own GitHub Action
+
+You can build your own action and reuse it in any repository.
+
+There are 3 common types:
+
+1. JavaScript action
+2. Docker action
+3. Composite action
+
+The easiest for beginners is a composite action.
+
+---
+
+### 1. Create a repository for the action
+
+Create a new GitHub repository, for example:
+
+```text
+my-org/custom-python-setup
+```
+
+Inside it, create a file named `action.yml`.
+
+Example:
+
+```yaml
+name: 'Custom Python Setup'
+description: 'Sets up Python and installs dependencies'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+    default: '3.11'
+  requirements-file:
+    description: 'Requirements file path'
+    required: false
+    default: 'requirements.txt'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ inputs.requirements-file }}
+```
+
+This action:
+- accepts input values
+- installs Python
+- installs project dependencies
+
+---
+
+### 2. Add the action code
+
+For a composite action, you usually only need the `action.yml` file.
+
+Example folder structure:
+
+```text
+custom-python-setup/
+  action.yml
+```
+
+---
+
+### 3. Commit and push the repository
+
+```bash
+git init
+git add .
+git commit -m "Initial custom action"
+git branch -M main
+git remote add origin https://github.com/<your-org>/<your-repo>.git
+git push -u origin main
+```
+
+---
+
+## Using the custom action in another repository
+
+In another repository, create or edit a workflow file:
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python and install deps
+        uses: your-org/custom-python-setup@v1
+        with:
+          python-version: '3.11'
+          requirements-file: 'requirements.txt'
+
+      - name: Run tests
+        run: pytest
+```
+
+This means:
+- the workflow calls your custom action
+- the action runs in a reusable way
+- all repositories can use the same setup logic
+
+---
+
+## Important syntax for using a custom action
+
+```yaml
+- uses: owner/repository@ref
+```
+
+Examples:
+
+```yaml
+- uses: my-org/custom-python-setup@v1
+- uses: my-org/custom-python-setup@main
+- uses: my-org/custom-python-setup@<commit-sha>
+```
+
+Best practice:
+- use a tag like `v1` or a commit SHA for stability
+
+---
+
+## Publishing to GitHub Marketplace
+
+If you want others to find and use your action publicly, you can publish it to the GitHub Marketplace.
+
+Steps:
+1. Create a public repository
+2. Add a valid `action.yml`
+3. Add a README
+4. Add release tags like `v1`
+5. Publish to Marketplace if needed
+
+---
+
+## JavaScript action example
+
+If you want logic in Node.js instead of shell commands:
+
+```yaml
+name: 'Hello World'
+description: 'Prints hello world'
+runs:
+  using: 'node20'
+  main: 'index.js'
+```
+
+Then create `index.js`:
+
+```javascript
+console.log('Hello from custom GitHub Action!')
+```
+
+This is useful when you need a more advanced action with logic and branching.
+
+---
+
+## Docker action example
+
+```yaml
+name: 'My Docker Action'
+description: 'Runs in a Docker container'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+```
+
+This is used when you need a custom environment or dependencies that are easier to manage in a container.
+
+---
+
+## Best practices for own actions
+
+- Keep the action simple and single-purpose
+- Use clear input names
+- Add documentation in README
+- Use version tags like `v1`
+- Test the action in a sample repo before sharing it
+- Keep action logic portable and repeatable
+
+---
+
+## Quick takeaway
+
+To create your own GitHub Action:
+
+1. create a repo
+2. add `action.yml`
+3. commit and push it
+4. call it from another repository with `uses: owner/repo@tag`
+
+This is the standard way to reuse CI logic across projects.
+
+---
+
 ## Quick takeaway
 
 If you want to do something common in CI, there is usually already an action for it.
