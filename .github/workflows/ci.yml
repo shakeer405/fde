@@ -36,3 +36,10 @@ jobs:
           echo test, and deploy your project.
           ls -lrth
           pwd
+      - uses: actions/setup-python@v7 
+           # Runs a set of commands using the runners shell
+      - name:  name
+        run: |
+          python --version
+          pip install -r testing/requirements.txt
+          python testing/01-fundamentals.py
